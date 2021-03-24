@@ -20,19 +20,28 @@ namespace TaskСontrol
 
 			int currentRow = startRow;
 			bool isNotEmptyField = true;
-			while(isNotEmptyField)
+			while (isNotEmptyField)
 			{
-				if ((string)(excelSheet.Cells[currentRow, column[0]] as Microsoft.Office.Interop.Excel.Range)?.Value?.Trim() != null)
+				var b = excelSheet.Cells[currentRow, column[1]].Value;
+				if (b != null
+					&& Convert.ToString(b) != ""
+					&& Convert.ToString(b) != " ")
 				{
 					Detail detail = new Detail((string)(excelSheet.Cells[currentRow, column[0]] as Microsoft.Office.Interop.Excel.Range)?.Value?.Trim(),
-						(string)(excelSheet.Cells[currentRow, column[2]] as Microsoft.Office.Interop.Excel.Range)?.Value?.Trim(),
-						(string)(excelSheet.Cells[currentRow, column[3]] as Microsoft.Office.Interop.Excel.Range)?.Value?.Trim(),
-						(string)(excelSheet.Cells[currentRow, column[1]] as Microsoft.Office.Interop.Excel.Range)?.Value?.Trim());
+						Convert.ToString((excelSheet.Cells[currentRow, column[2]] as Microsoft.Office.Interop.Excel.Range)?.Value).Trim(),
+						Convert.ToString((excelSheet.Cells[currentRow, column[3]] as Microsoft.Office.Interop.Excel.Range)?.Value).Trim(),
+						Convert.ToString((excelSheet.Cells[currentRow, column[1]] as Microsoft.Office.Interop.Excel.Range)?.Value).Trim(),
+						Convert.ToString((excelSheet.Cells[currentRow, column[4]] as Microsoft.Office.Interop.Excel.Range)?.Value).Trim());
 					details.Add(detail);
-					startRow += 1;
+					currentRow += 1;
 				}
-				else { isNotEmptyField = false; }
+				else 
+				{ 
+					isNotEmptyField = false;					
+				}				
 			}
+			wb.Close(0);
+			excel.Quit();
 			return details;
 		}      
 	}

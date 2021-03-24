@@ -9,24 +9,29 @@
     <Grid>
         <Grid>
             <Grid.RowDefinitions>
-                <RowDefinition Height="30"/>
+                <RowDefinition Height="25"/>
                 <RowDefinition/>
                 <RowDefinition Height="30"/>
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="250"/>
+                <ColumnDefinition Width="150"/>
                 <ColumnDefinition/>
                 <ColumnDefinition Width="250"/>
             </Grid.ColumnDefinitions>
             <Menu Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3">
-                <MenuItem Header="Меню" Height="30" FontSize="14">
+                <MenuItem Header="Меню" Height="25" FontSize="14">
                     <MenuItem Header="Добавить задание" Name="AddTask" Click="AddTask_Click"/>
-                    <MenuItem Header="Выход"/>
+                    <MenuItem Header="Обновить" Name="UpdateTask" Click="UpdateTask_Click" />
+                    <MenuItem Header="Выход" Click="MenuItem_Click"/>
                 </MenuItem>
             </Menu>
-            <TreeView Grid.Row="1" Grid.Column="0" Name="TreeViewTask"/>
-            <ListBox Grid.Column="1" Grid.Row="1" Name="ListBoxDetail"/>
-
+            <TreeView Grid.Row="1" Grid.Column="0" Name="TreeViewTask" SelectedItemChanged="TreeViewTask_SelectedItemChanged" BorderBrush="{x:Null}"/>
+            <ScrollViewer Grid.Row="1" Grid.Column="1" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+                <WrapPanel Name="TaskWrapPanel" Orientation="Horizontal" Margin="3" ></WrapPanel>
+            </ScrollViewer>
+            <ScrollViewer Grid.Row="1" Grid.Column="2" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+                <WrapPanel Name="InfoDetailWrapPanel" Orientation="Vertical" Margin="3" ></WrapPanel>
+            </ScrollViewer>
         </Grid>
     </Grid>
 </Window>
