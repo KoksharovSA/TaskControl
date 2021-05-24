@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -41,20 +42,40 @@ namespace TaskСontrol
             InfoDetailWrapPanel.Children.Clear();
             TextBlock textDir = new TextBlock() { Text = dir + "\n" + detail.Select(x=>x.MaterialDetail).FirstOrDefault() + " " + detail.Select(x => x.ThicknessMaterialDetail).FirstOrDefault() + "\n(Осталось разложить)", TextWrapping = TextWrapping.Wrap, FontWeight = FontWeights.UltraBold };
             InfoDetailWrapPanel.Children.Add(textDir);
+            string alltext = "";
             foreach (var item in detail)
             {                                
                 TextBlock text = new TextBlock() { Text = item.ToString(), TextWrapping = TextWrapping.Wrap };
+                ContextMenu contextMenu = new ContextMenu();
+                MenuItem menuItemCopy = new MenuItem();
+                menuItemCopy.Header = "Копировать";
+                menuItemCopy.Click += (object sender, RoutedEventArgs e) => { Clipboard.SetText(text.Text); };
+                contextMenu.Items.Add(menuItemCopy);
+                text.ContextMenu = contextMenu;
                 InfoDetailWrapPanel.Children.Add(text);
+                alltext += alltext == ""? item.ToString() : "\n" + item.ToString();
             }
+
+            ContextMenu contextMenu1 = new ContextMenu();
+            MenuItem menuItemCopy1 = new MenuItem();
+            menuItemCopy1.Header = "Копировать всё";
+            menuItemCopy1.Click += (object sender, RoutedEventArgs e) => { Clipboard.SetText(alltext); };
+            contextMenu1.Items.Add(menuItemCopy1);
+            textDir.ContextMenu = contextMenu1;
         }
 
         public Dictionary<string, Grid> LoadTask() 
         {
             Dictionary<string, Grid> dic = new Dictionary<string, Grid>();
             string[] dir = File.ReadAllLines("Dir.txt");
+            int col = 0;
             foreach (var item in dir)
             {
-                if (item != "" && item != null)
+                if (item.Length == 1 || item.Length == 2 || item.Length == 3)
+                {
+                    col = Convert.ToInt32(item);
+                }
+                if (item != "" && item != null && (item.Length != 1 && item.Length != 2 && item.Length != 3))
                 {
                     //TreeViewTask.Items.Add(new TreeViewItem() { Header = new FileInfo(item).Directory.Name });
                     Grid grid = new Grid();
@@ -72,26 +93,36 @@ namespace TaskСontrol
                     panel.HorizontalAlignment = HorizontalAlignment.Center;
                     panel.Width = 200;
                     panel.Margin = new Thickness(5, 5, 5, 5);
-
-                    panel.Children.Add(new TextBlock() { Text = new FileInfo(item).Name + "\n", FontWeight = FontWeights.UltraBold, TextWrapping = TextWrapping.Wrap });
-                    ColDetail = ExcelData.ExcelDataLoad(item, 4, new int[] { 1, 2, 12, 13, 35 });
-                    foreach (var item1 in ColDetail.Select(x => x.MaterialDetail).Distinct())
+                    TextBlock textBlockTop = new TextBlock() { Text = new FileInfo(item).Name + "\n", FontWeight = FontWeights.UltraBold, TextWrapping = TextWrapping.Wrap };
+                    textBlockTop.MouseDown += (object sender, MouseButtonEventArgs e) =>
                     {
-                        foreach (var item2 in ColDetail.Where(x => x.MaterialDetail == item1).OrderBy(x => x.ThicknessMaterialDetail).Select(x => x.ThicknessMaterialDetail).Distinct())
+                        if (e.ClickCount == 2)
+                        {
+                            Process.Start(@item);
+                        }
+                    };
+                    panel.Children.Add(textBlockTop);
+                    foreach (var det in ExcelData.ExcelDataLoad(item, 4, new int[] { 1, 2, 12, 13, col }))
+                    {
+                        ColDetail.Add(det);
+                    }                    
+                    foreach (var item1 in ColDetail.Where(y=>y.File == new FileInfo(item).Name).Select(x => x.MaterialDetail).Distinct())
+                    {
+                        foreach (var item2 in ColDetail.Where(x => x.MaterialDetail == item1 && x.File == new FileInfo(item).Name).OrderBy(x => x.ThicknessMaterialDetail).Select(x => x.ThicknessMaterialDetail).Distinct())
                         {
                             int before = 0;
                             int after = 0;
-                            foreach (var item3 in ColDetail.Where(x => x.MaterialDetail == item1 && x.ThicknessMaterialDetail == item2))
+                            foreach (var item3 in ColDetail.Where(x => x.MaterialDetail == item1 && x.ThicknessMaterialDetail == item2 && x.File == new FileInfo(item).Name))
                             {
                                 before += Convert.ToInt32(item3.QuantityDetail);
                                 after += Convert.ToInt32(item3.QuantityDetailNecessary);
                             }
-                            if (before != 0)
+                            if (before > 0)
                             {
-                                TextBlock textBlock = new TextBlock() { Text = item1 + "  " + item2 + "  (" + (before - after) + " из " + before + ")", TextWrapping = TextWrapping.Wrap };
+                                TextBlock textBlock = new TextBlock() { Text = item1 + "  " + item2 + "  (" + (before - after) + " из " + before + ")", TextWrapping = TextWrapping.Wrap };                                
                                 textBlock.MouseLeftButtonUp += (object sender, MouseButtonEventArgs e) =>
                                 {
-                                    InfoDetail(ColDetail.Where(x => x.MaterialDetail == item1 && x.ThicknessMaterialDetail == item2 && x.QuantityDetailNecessary != "0"), new FileInfo(item).Name);
+                                    InfoDetail(ColDetail.Where(x => x.MaterialDetail == item1 && x.ThicknessMaterialDetail == item2 && Convert.ToInt32(x.QuantityDetailNecessary) > 0 && x.File == new FileInfo(item).Name), new FileInfo(item).Name);
                                 };
                                 panel.Children.Add(textBlock);
                                 ProgressBar progressBar = new ProgressBar() { Value = 100 - (after * 100 / before), Height = 20, Width = 200 };
@@ -156,6 +187,8 @@ namespace TaskСontrol
 
         private void UpdateTask_Click(object sender, RoutedEventArgs e)
         {
+            ColGrid.Clear();
+            ColDetail.Clear();
             ColGrid = LoadTask();
             TaskWrapPanel.Children.Clear();
         }        

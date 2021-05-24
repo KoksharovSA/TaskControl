@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:TaskСontrol"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="Учёт заданий" Height="450" Width="800">
     <Grid>
         <Grid>
             <Grid.RowDefinitions>
@@ -16,7 +16,7 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="150"/>
                 <ColumnDefinition/>
-                <ColumnDefinition Width="250"/>
+                <ColumnDefinition Width="300"/>
             </Grid.ColumnDefinitions>
             <Menu Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3">
                 <MenuItem Header="Меню" Height="25" FontSize="14">
@@ -31,6 +31,7 @@
             </ScrollViewer>
             <ScrollViewer Grid.Row="1" Grid.Column="2" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
                 <WrapPanel Name="InfoDetailWrapPanel" Orientation="Vertical" Margin="3" ></WrapPanel>
+                
             </ScrollViewer>
         </Grid>
     </Grid>
