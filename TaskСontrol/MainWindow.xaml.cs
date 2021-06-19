@@ -42,7 +42,7 @@ namespace TaskСontrol
             InfoDetailWrapPanel.Children.Clear();
             TextBlock textDir = new TextBlock() { Text = dir + "\n" + detail.Select(x=>x.MaterialDetail).FirstOrDefault() + " " + detail.Select(x => x.ThicknessMaterialDetail).FirstOrDefault() + "\n(Осталось разложить)", TextWrapping = TextWrapping.Wrap, FontWeight = FontWeights.UltraBold };
             InfoDetailWrapPanel.Children.Add(textDir);
-            string alltext = "";
+            string alltext = textDir.Text;
             foreach (var item in detail)
             {                                
                 TextBlock text = new TextBlock() { Text = item.ToString(), TextWrapping = TextWrapping.Wrap };
