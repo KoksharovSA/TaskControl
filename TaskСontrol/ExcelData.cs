@@ -9,12 +9,16 @@ using System.Threading.Tasks;
 
 namespace TaskСontrol
 {
-	internal class ExcelData
+	internal static class ExcelData
 	{
-		public static Collection<Detail> ExcelDataLoad(string dir, int startRow, int[] column)
+		internal static Dictionary<string, Collection<Detail>> details = new Dictionary<string, Collection<Detail>>();
+		public static async void ExcelDataLoadAsync(string dir, int col) 
 		{
-			Collection<Detail> details = new Collection<Detail>();
-
+			await Task.Run(() => ExcelDataLoad(dir, 4, new int[] { 1, 2, 12, 13, col }));
+		}
+		public static void ExcelDataLoad(string dir, int startRow, int[] column)
+		{
+			Collection<Detail> det = new Collection<Detail>();
 			Microsoft.Office.Interop.Excel.Application excel = new Microsoft.Office.Interop.Excel.Application();
 			Workbook wb = excel.Workbooks.Open(dir);
 			Worksheet excelSheet = (Microsoft.Office.Interop.Excel.Worksheet)excel.ActiveSheet;
@@ -34,7 +38,8 @@ namespace TaskСontrol
 						Convert.ToString((excelSheet.Cells[currentRow, column[1]] as Microsoft.Office.Interop.Excel.Range)?.Value).Trim(),
 						Convert.ToString((excelSheet.Cells[currentRow, column[4]] as Microsoft.Office.Interop.Excel.Range)?.Value).Trim(),
 						new FileInfo(dir).Name);
-					details.Add(detail);
+					det.Add(detail);
+
 					currentRow += 1;
 				}
 				else 
@@ -42,9 +47,9 @@ namespace TaskСontrol
 					isNotEmptyField = false;					
 				}				
 			}
+			details.Add(dir, det);
 			wb.Close(0);
 			excel.Quit();
-			return details;
 		}      
 	}
 }

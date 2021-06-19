@@ -29,6 +29,7 @@ namespace TaskСontrol
         public MainWindow()
         {
             InitializeComponent();
+
             ColGrid = LoadTask();
             TreeViewTask.Items.Add("Все");
             foreach (var item in ColGrid.Select(x=> new FileInfo(x.Key).Directory.Name).Distinct().OrderBy(x=>x))
@@ -64,7 +65,8 @@ namespace TaskСontrol
             textDir.ContextMenu = contextMenu1;
         }
 
-        public Dictionary<string, Grid> LoadTask() 
+        //ExcelData.ExcelDataLoad(item, 4, new int[] { 1, 2, 12, 13, col })
+        internal Dictionary<string, Grid> LoadTask(IEnumerable<Detail> excelDataLoad) 
         {
             Dictionary<string, Grid> dic = new Dictionary<string, Grid>();
             string[] dir = File.ReadAllLines("Dir.txt");
@@ -102,7 +104,7 @@ namespace TaskСontrol
                         }
                     };
                     panel.Children.Add(textBlockTop);
-                    foreach (var det in ExcelData.ExcelDataLoad(item, 4, new int[] { 1, 2, 12, 13, col }))
+                    foreach (var det in excelDataLoad)
                     {
                         ColDetail.Add(det);
                     }                    
