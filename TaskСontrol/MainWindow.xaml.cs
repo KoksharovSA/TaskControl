@@ -29,33 +29,68 @@ namespace TaskСontrol
         public MainWindow()
         {
             InitializeComponent();
-
             ColGrid = LoadTask();
             TreeViewTask.Items.Add("Все");
-            foreach (var item in ColGrid.Select(x=> new FileInfo(x.Key).Directory.Name).Distinct().OrderBy(x=>x))
+            try
             {
-                TreeViewTask.Items.Add(item.Substring(1));
+                foreach (var item in ColGrid.Select(x => new FileInfo(x.Key).Directory.Name).Distinct().OrderBy(x => Convert.ToInt32(x.Split(' ')[0])))
+                {
+                    string mon = "октябрьноябрьдекабрь";
+                    if (mon.Contains(item.ToLower().Substring(3)))
+                    {
+                        TreeViewTask.Items.Add(item.Substring(3));
+                    }
+                    else
+                    {
+                        TreeViewTask.Items.Add(item.Substring(2));
+                    }
+                }
             }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex + "\nОшибка. Возможно в названии папки месяца отсутствует пробел между номером месяца е его названием.");
+            }
+            
+
         }
 
-        internal void InfoDetail(IEnumerable<Detail> detail, string dir) 
+        internal void InfoDetail(IEnumerable<Detail> detail, string dir)
         {
             InfoDetailWrapPanel.Children.Clear();
-            TextBlock textDir = new TextBlock() { Text = dir + "\n" + detail.Select(x=>x.MaterialDetail).FirstOrDefault() + " " + detail.Select(x => x.ThicknessMaterialDetail).FirstOrDefault() + "\n(Осталось разложить)", TextWrapping = TextWrapping.Wrap, FontWeight = FontWeights.UltraBold };
+            TextBlock textDir = new TextBlock() { Text = dir + "\n" + detail.Select(x => x.MaterialDetail).FirstOrDefault() + " " + detail.Select(x => x.ThicknessMaterialDetail).FirstOrDefault() + "\n(Осталось разложить)", TextWrapping = TextWrapping.Wrap, FontWeight = FontWeights.UltraBold };
             InfoDetailWrapPanel.Children.Add(textDir);
             string alltext = textDir.Text;
-            foreach (var item in detail)
-            {                                
-                TextBlock text = new TextBlock() { Text = item.ToString(), TextWrapping = TextWrapping.Wrap };
-                ContextMenu contextMenu = new ContextMenu();
-                MenuItem menuItemCopy = new MenuItem();
-                menuItemCopy.Header = "Копировать";
-                menuItemCopy.Click += (object sender, RoutedEventArgs e) => { Clipboard.SetText(text.Text); };
-                contextMenu.Items.Add(menuItemCopy);
-                text.ContextMenu = contextMenu;
-                InfoDetailWrapPanel.Children.Add(text);
-                alltext += alltext == ""? item.ToString() : "\n" + item.ToString();
+            if (RBMinus.IsChecked.Value)
+            {
+                foreach (var item in detail.OrderByDescending(x => x.Rating))
+                {
+                    TextBlock text = new TextBlock() { Text = item.ToString(), TextWrapping = TextWrapping.Wrap };
+                    ContextMenu contextMenu = new ContextMenu();
+                    MenuItem menuItemCopy = new MenuItem();
+                    menuItemCopy.Header = "Копировать";
+                    menuItemCopy.Click += (object sender, RoutedEventArgs e) => { Clipboard.SetText(item.NameDetail); };
+                    contextMenu.Items.Add(menuItemCopy);
+                    text.ContextMenu = contextMenu;
+                    InfoDetailWrapPanel.Children.Add(text);
+                    alltext += alltext == "" ? item.ToString() : "\n" + item.ToString();
+                }
             }
+            if (RBPlus.IsChecked.Value)
+            {
+                foreach (var item in detail.OrderByDescending(x => x.Rating))
+                {
+                    TextBlock text = new TextBlock() { Text = item.ToStringTP(), TextWrapping = TextWrapping.Wrap };
+                    ContextMenu contextMenu = new ContextMenu();
+                    MenuItem menuItemCopy = new MenuItem();
+                    menuItemCopy.Header = "Копировать";
+                    menuItemCopy.Click += (object sender, RoutedEventArgs e) => { Clipboard.SetText(item.NameDetail); };
+                    contextMenu.Items.Add(menuItemCopy);
+                    text.ContextMenu = contextMenu;
+                    InfoDetailWrapPanel.Children.Add(text);
+                    alltext += alltext == "" ? item.ToStringTP() : "\n" + item.ToStringTP();
+                }
+            }
+            
 
             ContextMenu contextMenu1 = new ContextMenu();
             MenuItem menuItemCopy1 = new MenuItem();
@@ -65,8 +100,7 @@ namespace TaskСontrol
             textDir.ContextMenu = contextMenu1;
         }
 
-        //ExcelData.ExcelDataLoad(item, 4, new int[] { 1, 2, 12, 13, col })
-        internal Dictionary<string, Grid> LoadTask(IEnumerable<Detail> excelDataLoad) 
+        public Dictionary<string, Grid> LoadTask()
         {
             Dictionary<string, Grid> dic = new Dictionary<string, Grid>();
             string[] dir = File.ReadAllLines("Dir.txt");
@@ -104,11 +138,11 @@ namespace TaskСontrol
                         }
                     };
                     panel.Children.Add(textBlockTop);
-                    foreach (var det in excelDataLoad)
+                    foreach (var det in ExcelData.ExcelDataLoad(item, 4, new int[] { 1, 2, 12, 13, col, 3, 4, 5, 6, 7, 8, 9, 10, 11 }))
                     {
                         ColDetail.Add(det);
-                    }                    
-                    foreach (var item1 in ColDetail.Where(y=>y.File == new FileInfo(item).Name).Select(x => x.MaterialDetail).Distinct())
+                    }
+                    foreach (var item1 in ColDetail.Where(y => y.File == new FileInfo(item).Name).Select(x => x.MaterialDetail).Distinct())
                     {
                         foreach (var item2 in ColDetail.Where(x => x.MaterialDetail == item1 && x.File == new FileInfo(item).Name).OrderBy(x => x.ThicknessMaterialDetail).Select(x => x.ThicknessMaterialDetail).Distinct())
                         {
@@ -116,18 +150,36 @@ namespace TaskСontrol
                             int after = 0;
                             foreach (var item3 in ColDetail.Where(x => x.MaterialDetail == item1 && x.ThicknessMaterialDetail == item2 && x.File == new FileInfo(item).Name))
                             {
-                                before += Convert.ToInt32(item3.QuantityDetail);
-                                after += Convert.ToInt32(item3.QuantityDetailNecessary);
+                                if (Convert.ToInt32(item3.QuantityDetail) > 0)
+                                {
+                                    before += Convert.ToInt32(item3.QuantityDetail);
+                                }
+                                if (Convert.ToInt32(item3.QuantityDetailNecessary)>0)
+                                {
+                                    after += Convert.ToInt32(item3.QuantityDetailNecessary);
+                                }                                
                             }
                             if (before > 0)
                             {
-                                TextBlock textBlock = new TextBlock() { Text = item1 + "  " + item2 + "  (" + (before - after) + " из " + before + ")", TextWrapping = TextWrapping.Wrap };                                
+                                TextBlock textBlock = new TextBlock() { Text = item1 + "  " + item2 + "  (" + (before - after) + " из " + before + ")", TextWrapping = TextWrapping.Wrap };
                                 textBlock.MouseLeftButtonUp += (object sender, MouseButtonEventArgs e) =>
                                 {
                                     InfoDetail(ColDetail.Where(x => x.MaterialDetail == item1 && x.ThicknessMaterialDetail == item2 && Convert.ToInt32(x.QuantityDetailNecessary) > 0 && x.File == new FileInfo(item).Name), new FileInfo(item).Name);
                                 };
+
+                                //ContextMenu contextMenu = new ContextMenu();
+                                //MenuItem menuItemCopy = new MenuItem();
+                                //menuItemCopy.Header = "Сварка";
+                                //menuItemCopy.Click += (object sender, RoutedEventArgs e) => { Clipboard.SetText(item.NameDetail); };
+                                //contextMenu.Items.Add(menuItemCopy);
+                                //textBlock.ContextMenu = contextMenu;
+
+
+                                ProgressBar progressBar = new ProgressBar() { Value = 100 - Math.Round((Convert.ToDouble(after) * 100 / (Convert.ToDouble(before)))), Height = 20, Width = 200 };
+                                if (progressBar.Value != 100) { rectangle.Stroke = Brushes.Red; textBlock.Foreground = Brushes.Red; }
                                 panel.Children.Add(textBlock);
-                                ProgressBar progressBar = new ProgressBar() { Value = 100 - (after * 100 / before), Height = 20, Width = 200 };
+
+                                
                                 panel.Children.Add(progressBar);
                             }
                             else
@@ -145,8 +197,8 @@ namespace TaskСontrol
                     }
                     grid.Children.Add(rectangle);
                     grid.Children.Add(panel);
-                    dic.Add(item,grid);                    
-                }               
+                    dic.Add(item, grid);
+                }
             }
             return dic;
         }
@@ -160,7 +212,7 @@ namespace TaskСontrol
             foreach (var item in openFileDialog.FileNames)
             {
                 File.AppendAllText("Dir.txt", Environment.NewLine + item);
-            }                      
+            }
         }
 
         private void MenuItem_Click(object sender, RoutedEventArgs e)
@@ -193,6 +245,6 @@ namespace TaskСontrol
             ColDetail.Clear();
             ColGrid = LoadTask();
             TaskWrapPanel.Children.Clear();
-        }        
+        }
     }
 }

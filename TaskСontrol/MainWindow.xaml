@@ -31,8 +31,13 @@
             </ScrollViewer>
             <ScrollViewer Grid.Row="1" Grid.Column="2" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
                 <WrapPanel Name="InfoDetailWrapPanel" Orientation="Vertical" Margin="3" ></WrapPanel>
-                
+
             </ScrollViewer>
+            <StackPanel Orientation="Horizontal" Grid.Row="2" Grid.Column="2">
+                <RadioButton Content="+" Name="RBPlus" Grid.Column="2" HorizontalAlignment="Left" Margin="10,0,0,0" Grid.Row="2" VerticalAlignment="Top"/>
+                <RadioButton Content="-" Name="RBMinus" Grid.Column="2" HorizontalAlignment="Left" Margin="10,0,0,0" Grid.Row="2" VerticalAlignment="Top" IsChecked="True"/>
+            </StackPanel>
+            
         </Grid>
     </Grid>
 </Window>
